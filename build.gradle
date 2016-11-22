@@ -3,7 +3,7 @@ plugins {
   id 'pl.allegro.tech.build.axion-release' version '1.4.1'
   id 'maven-publish'
   id 'com.jfrog.bintray' version '1.7.3'
-  id 'findbugs'
+  // id 'findbugs'
   id 'checkstyle'
   id 'jacoco'
 }
@@ -34,7 +34,9 @@ repositories {
 dependencies {
   testCompile 'junit:junit:+'
   testCompile 'com.squareup.okhttp3:mockwebserver:+'
-  testCompile 'io.github.openfeign:feign-gson:+'
+  testCompile('io.github.openfeign:feign-gson:+') {
+    exclude group: 'org.jvnet', module: 'animal-sniffer-annotation'
+  }
 
   compile('io.github.openfeign:feign-core:+') {
     exclude group: 'org.jvnet', module: 'animal-sniffer-annotation'
@@ -102,25 +104,25 @@ bintray {
 
 bintrayUpload.onlyIf { !project.version.endsWith('SNAPSHOT') }
 
-findbugs {
-  toolVersion = "+"
-  reportsDir = file("$project.buildDir/findbugsReports")
-  effort = "max"
-  reportLevel = "low"
-  ignoreFailures = false
-}
-
-tasks.withType(FindBugs) {
-  reports {
-    xml.enabled = false
-    html.enabled = true
-  }
-}
+//findbugs {
+//  toolVersion = "+"
+//  reportsDir = file("${project.buildDir}/findbugsReports")
+//  effort = "max"
+//  reportLevel = "low"
+//  ignoreFailures = false
+//}
+//
+//tasks.withType(FindBugs) {
+//  reports {
+//    xml.enabled = false
+//    html.enabled = true
+//  }
+//}
 
 checkstyle {
   config = resources.text.fromFile("checkstyle/google-checks.xml")
   configProperties = [samedir: "${projectDir}/checkstyle"]
-  reportsDir = file("$project.buildDir/checkstyleReports")
+  reportsDir = file("${project.buildDir}/checkstyleReports")
   toolVersion = "+"
   ignoreFailures = false
 }
