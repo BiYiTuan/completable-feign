@@ -3,12 +3,11 @@ package engineering.clientside.feign.completable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import feign.Contract;
 import feign.MethodMetadata;
-
-import static feign.Util.resolveLastTypeParameter;
+import feign.Util;
 
 final class CompletableContract implements Contract {
 
@@ -23,9 +22,15 @@ final class CompletableContract implements Contract {
     final List<MethodMetadata> metadataList = delegate.parseAndValidatateMetadata(targetType);
     for (final MethodMetadata metadata : metadataList) {
       final Type type = metadata.returnType();
-      if (type instanceof ParameterizedType
-          && ((ParameterizedType) type).getRawType().equals(CompletableFuture.class)) {
-        metadata.returnType(resolveLastTypeParameter(type, CompletableFuture.class));
+      if (type instanceof ParameterizedType) {
+        final ParameterizedType parameterizedType = ParameterizedType.class.cast(type);
+        final Type rawType = parameterizedType.getRawType();
+        if (rawType instanceof Class) {
+          final Class<?> futureClass = (Class<?>) rawType;
+          if (Future.class.isAssignableFrom(futureClass)) {
+            metadata.returnType(Util.resolveLastTypeParameter(type, futureClass));
+          }
+        }
       }
     }
     return metadataList;

@@ -4,9 +4,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 
 import feign.InvocationHandlerFactory.MethodHandler;
 import feign.Target;
@@ -16,27 +15,22 @@ final class CompletableInvocationHandler implements InvocationHandler {
   private final Target<?> target;
   private final Map<Method, MethodHandler> dispatch;
   private final Executor executor;
+  private final FutureMethodCallFactory futureFactory;
 
   CompletableInvocationHandler(final Target<?> target,
-      final Map<Method, MethodHandler> dispatch, final Executor executor) {
+      final Map<Method, MethodHandler> dispatch, final FutureMethodCallFactory futureFactory,
+      final Executor executor) {
     this.target = target;
     this.dispatch = dispatch;
+    this.futureFactory = futureFactory;
     this.executor = executor;
   }
 
   @Override
   public Object invoke(final Object proxy, final Method method, final Object[] args)
       throws Throwable {
-    if (method.getReturnType().equals(CompletableFuture.class)) {
-      return CompletableFuture.supplyAsync(() -> {
-        try {
-          return dispatch.get(method).invoke(args);
-        } catch (final RuntimeException re) {
-          throw re;
-        } catch (final Throwable throwable) {
-          throw new CompletionException(throwable);
-        }
-      }, executor);
+    if (Future.class.isAssignableFrom(method.getReturnType())) {
+      return futureFactory.create(dispatch, method, args, executor);
     }
     switch (method.getName()) {
       case "equals":

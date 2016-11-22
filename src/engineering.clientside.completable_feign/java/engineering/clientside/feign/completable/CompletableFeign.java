@@ -18,7 +18,19 @@ public final class CompletableFeign {
   public static final class Builder extends Feign.Builder {
 
     private Contract contract = new Contract.Default();
+    private FutureMethodCallFactory futureFactory = new FutureMethodCallFactory.Default();
     private Executor executor = ForkJoinPool.commonPool();
+
+    @Override
+    public Builder contract(final Contract contract) {
+      this.contract = contract;
+      return this;
+    }
+
+    public Builder futureFactory(final FutureMethodCallFactory futureFactory) {
+      this.futureFactory = futureFactory;
+      return this;
+    }
 
     public Builder executor(final Executor executor) {
       this.executor = executor;
@@ -32,15 +44,9 @@ public final class CompletableFeign {
     }
 
     @Override
-    public Builder contract(final Contract contract) {
-      this.contract = contract;
-      return this;
-    }
-
-    @Override
     public Feign build() {
       super.invocationHandlerFactory((target, dispatch) ->
-          new CompletableInvocationHandler(target, dispatch, executor));
+          new CompletableInvocationHandler(target, dispatch, futureFactory, executor));
       super.contract(new CompletableContract(contract));
       return super.build();
     }

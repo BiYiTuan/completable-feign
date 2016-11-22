@@ -52,10 +52,23 @@ public class CompletableFeignBuilderTest {
     final ExecutorService exec = Executors.newSingleThreadExecutor();
     server.enqueue(new MockResponse().setBody("response data"));
     final String url = "http://localhost:" + server.getPort();
-    final TestInterface api = CompletableFeign.builder().executor(exec).target(TestInterface.class, url);
+    final TestInterface api = CompletableFeign.builder().executor(exec).target(TestInterface
+        .class, url);
     final CompletableFuture<Response> response = api.get();
     assertEquals("response data", Util.toString(response.join().body().asReader()));
     exec.shutdown();
+  }
+
+  @Test
+  public void testProvideFutureFactory() throws Exception {
+    server.enqueue(new MockResponse().setBody("response data"));
+    final String url = "http://localhost:" + server.getPort();
+    final TestInterface api = CompletableFeign.builder()
+        .futureFactory(new FutureMethodCallFactory.Default())
+        .target(TestInterface.class, url);
+    final Response response = api.codecPost("request data");
+    assertEquals("response data", Util.toString(response.body().asReader()));
+    assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
   }
 
   @Test(expected = UnsupportedOperationException.class)

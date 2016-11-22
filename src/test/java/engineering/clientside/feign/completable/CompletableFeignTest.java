@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import feign.Feign;
 import feign.FeignException;
@@ -35,6 +37,14 @@ public class CompletableFeignTest {
     final CompletableFuture<String> future = TestInterface.create(server).command();
     assertNotNull(future);
     assertEquals("foo", future.join());
+  }
+
+  @Test
+  public void stringFuture() throws ExecutionException, InterruptedException {
+    server.enqueue(new MockResponse().setBody("\"foo\""));
+    final Future<String> future = TestInterface.create(server).commandFuture();
+    assertNotNull(future);
+    assertEquals("foo", future.get());
   }
 
   @Test
@@ -154,9 +164,9 @@ public class CompletableFeignTest {
     assertEquals(i1String, t1.toString());
 
     final CompletableInvocationHandler direct =
-        new CompletableInvocationHandler(t1, null, null);
+        new CompletableInvocationHandler(t1, null, null, null);
     assertEquals(direct, direct);
-    assertEquals(direct, new CompletableInvocationHandler(t1, null, null));
+    assertEquals(direct, new CompletableInvocationHandler(t1, null, null,null));
     assertNotEquals(direct, t1);
     assertNotEquals(direct, t2);
     assertNotEquals(direct, t3);
@@ -186,6 +196,10 @@ public class CompletableFeignTest {
     @RequestLine("GET /")
     @Headers("Accept: application/json")
     CompletableFuture<String> command();
+
+    @RequestLine("GET /")
+    @Headers("Accept: application/json")
+    Future<String> commandFuture();
 
     @RequestLine("GET /")
     @Headers("Accept: application/json")
