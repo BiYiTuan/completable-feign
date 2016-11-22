@@ -110,6 +110,7 @@ findbugs {
   effort = "max"
   reportLevel = "low"
   ignoreFailures = false
+  excludeFilter = file("${project.projectDir}/findbugs-exclude.xml")
 }
 
 tasks.withType(FindBugs) {

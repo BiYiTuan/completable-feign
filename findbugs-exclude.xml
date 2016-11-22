@@ -1,0 +1,6 @@
+<FindBugsFilter>
+  <Match>
+    <Class name="engineering.clientside.feign.completable.CompletableFeignTest"/>
+    <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+  </Match>
+</FindBugsFilter>
