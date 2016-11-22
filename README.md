@@ -23,4 +23,4 @@ YourType responseA = responseAFuture.join();
 YourType responseB = api.getYourTypeSynchronous("b");
 ```
 
-Note: Methods that do *not* return a [`CompletableFuture`]() are not wrapped and are executed directly using the same strategy as feign-core.
+Note: Methods that do *not* return a [`CompletableFuture`]() are *not* wrapped and are executed directly using the same strategy as feign-core.

@@ -26,9 +26,9 @@ public class CompletableFeignBuilderTest {
   @Test
   public void testDefaults() throws Exception {
     server.enqueue(new MockResponse().setBody("response data"));
-    String url = "http://localhost:" + server.getPort();
-    TestInterface api = CompletableFeign.builder().target(TestInterface.class, url);
-    Response response = api.codecPost("request data");
+    final String url = "http://localhost:" + server.getPort();
+    final TestInterface api = CompletableFeign.builder().target(TestInterface.class, url);
+    final Response response = api.codecPost("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
   }
@@ -36,14 +36,14 @@ public class CompletableFeignBuilderTest {
   @Test
   public void testProvideContract() throws Exception {
     server.enqueue(new MockResponse().setBody("response data"));
-    String url = "http://localhost:" + server.getPort();
-    TestInterface api = CompletableFeign.builder().contract(new Contract.Default())
+    final String url = "http://localhost:" + server.getPort();
+    final TestInterface api = CompletableFeign.builder().contract(new Contract.Default())
         .target(TestInterface.class, url);
-    Response response = api.codecPost("request data");
+    final Response response = api.codecPost("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
     server.enqueue(new MockResponse().setBody("response data"));
-    CompletableFuture<Response> responseFuture = api.get();
+    final CompletableFuture<Response> responseFuture = api.get();
     assertEquals("response data", Util.toString(responseFuture.join().body().asReader()));
   }
 
@@ -51,9 +51,9 @@ public class CompletableFeignBuilderTest {
   public void testProvideExecutor() throws Exception {
     final ExecutorService exec = Executors.newSingleThreadExecutor();
     server.enqueue(new MockResponse().setBody("response data"));
-    String url = "http://localhost:" + server.getPort();
-    TestInterface api = CompletableFeign.builder().executor(exec).target(TestInterface.class, url);
-    CompletableFuture<Response> response = api.get();
+    final String url = "http://localhost:" + server.getPort();
+    final TestInterface api = CompletableFeign.builder().executor(exec).target(TestInterface.class, url);
+    final CompletableFuture<Response> response = api.get();
     assertEquals("response data", Util.toString(response.join().body().asReader()));
     exec.shutdown();
   }

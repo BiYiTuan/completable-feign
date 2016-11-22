@@ -3,7 +3,7 @@ plugins {
   id 'pl.allegro.tech.build.axion-release' version '1.4.1'
   id 'maven-publish'
   id 'com.jfrog.bintray' version '1.7.3'
-  // id 'findbugs'
+  id 'findbugs'
   id 'checkstyle'
   id 'jacoco'
 }
@@ -104,20 +104,20 @@ bintray {
 
 bintrayUpload.onlyIf { !project.version.endsWith('SNAPSHOT') }
 
-//findbugs {
-//  toolVersion = "+"
-//  reportsDir = file("${project.buildDir}/findbugsReports")
-//  effort = "max"
-//  reportLevel = "low"
-//  ignoreFailures = false
-//}
-//
-//tasks.withType(FindBugs) {
-//  reports {
-//    xml.enabled = false
-//    html.enabled = true
-//  }
-//}
+findbugs {
+  toolVersion = "+"
+  reportsDir = file("${project.buildDir}/findbugsReports")
+  effort = "max"
+  reportLevel = "low"
+  ignoreFailures = false
+}
+
+tasks.withType(FindBugs) {
+  reports {
+    xml.enabled = false
+    html.enabled = true
+  }
+}
 
 checkstyle {
   config = resources.text.fromFile("checkstyle/google-checks.xml")

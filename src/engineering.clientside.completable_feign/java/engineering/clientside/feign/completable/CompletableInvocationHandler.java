@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 
 import feign.InvocationHandlerFactory.MethodHandler;
 import feign.Target;
@@ -28,13 +27,13 @@ final class CompletableInvocationHandler implements InvocationHandler {
   @Override
   public Object invoke(final Object proxy, final Method method, final Object[] args)
       throws Throwable {
-    if (Future.class.isAssignableFrom(method.getReturnType())) {
+    if (method.getReturnType().equals(CompletableFuture.class)) {
       return CompletableFuture.supplyAsync(() -> {
         try {
           return dispatch.get(method).invoke(args);
-        } catch (RuntimeException re) {
+        } catch (final RuntimeException re) {
           throw re;
-        } catch (Throwable throwable) {
+        } catch (final Throwable throwable) {
           throw new CompletionException(throwable);
         }
       }, executor);
@@ -50,7 +49,7 @@ final class CompletableInvocationHandler implements InvocationHandler {
             final CompletableInvocationHandler that = (CompletableInvocationHandler) other;
             return target.equals(that.target);
           }
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
           //
         }
         return false;
