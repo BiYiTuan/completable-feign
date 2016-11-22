@@ -83,7 +83,7 @@ bintray {
     userOrg = 'client-side'
     repo = 'clients'
     name = project.name
-    desc = 'Java Concurrent Rate Limiter'
+    desc = 'CompletableFuture Feign Module'
     websiteUrl = 'https://github.com/client-side/' + project.name
     vcsUrl = 'https://github.com/client-side/' + project.name
     issueTrackerUrl = 'https://github.com/client-side/' + project.name + '/issues'

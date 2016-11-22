@@ -1,4 +1,4 @@
-# Completable Feign
+# Completable Feign [![Build Status](https://travis-ci.org/client-side/completable-feign.svg)](https://travis-ci.org/client-side/completable-feign) [![JCenter](https://api.bintray.com/packages/client-side/clients/completable-feign/images/download.svg) ](https://bintray.com/client-side/clients/completable-feign/_latestVersion) [![License](http://img.shields.io/badge/license-Apache--2-blue.svg?style=flat) ](http://www.apache.org/licenses/LICENSE-2.0) [![codecov](https://codecov.io/gh/client-side/completable-feign/branch/master/graph/badge.svg)](https://codecov.io/gh/client-side/completable-feign)
 
 This module utilizes the [`CompletableFuture#supplyAsync(Supplier<U> supplier, Executor executor)`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) method to execute Feign HTTP requests asynchronously.  An executor may be supplied via the [`CompletableFeign.Builder`](src/engineering.clientside.completable_feign/java/engineering/clientside/feign/completable/CompletableFeign.java#L18), otherwise it defaults to the `ForkJoinPool.commonPool()`.
 
