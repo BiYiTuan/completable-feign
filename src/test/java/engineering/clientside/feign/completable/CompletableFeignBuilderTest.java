@@ -3,15 +3,25 @@ package engineering.clientside.feign.completable;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
+import feign.Client;
 import feign.Contract;
-import feign.InvocationHandlerFactory;
+import feign.Logger;
+import feign.Request;
 import feign.RequestLine;
 import feign.Response;
+import feign.Retryer;
 import feign.Util;
+import feign.auth.BasicAuthRequestInterceptor;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
+import feign.codec.ErrorDecoder;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 
@@ -28,6 +38,28 @@ public class CompletableFeignBuilderTest {
     server.enqueue(new MockResponse().setBody("response data"));
     final String url = "http://localhost:" + server.getPort();
     final TestInterface api = CompletableFeign.builder().target(TestInterface.class, url);
+    final Response response = api.codecPost("request data");
+    assertEquals("response data", Util.toString(response.body().asReader()));
+    assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
+  }
+
+  @Test
+  public void testDelegates() throws Exception {
+    server.enqueue(new MockResponse().setBody("response data"));
+    final String url = "http://localhost:" + server.getPort();
+    final TestInterface api = CompletableFeign.builder()
+        .logLevel(Logger.Level.BASIC)
+        .logger(new Logger.ErrorLogger())
+        .client(new Client.Default(null, null))
+        .retryer(new Retryer.Default())
+        .encoder(new Encoder.Default())
+        .decoder(new Decoder.Default())
+        .decode404()
+        .errorDecoder(new ErrorDecoder.Default())
+        .options(new Request.Options())
+        .requestInterceptor(new BasicAuthRequestInterceptor("user", "pass"))
+        .requestInterceptors(Collections.emptyList())
+        .target(TestInterface.class, url);
     final Response response = api.codecPost("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
@@ -64,19 +96,41 @@ public class CompletableFeignBuilderTest {
     server.enqueue(new MockResponse().setBody("response data"));
     final String url = "http://localhost:" + server.getPort();
     final TestInterface api = CompletableFeign.builder()
-        .futureFactory(new FutureMethodCallFactory.Default())
-        .target(TestInterface.class, url);
+        .futureFactory((dispatch, method, args, executor) -> CompletableFuture.supplyAsync(() -> {
+          try {
+            return dispatch.get(method).invoke(args);
+          } catch (final RuntimeException re) {
+            throw re;
+          } catch (final Throwable throwable) {
+            throw new CompletionException(throwable);
+          }
+        }, executor)).target(TestInterface.class, url);
     final Response response = api.codecPost("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testProvideInvocationHandlerFactory() throws Exception {
-    final InvocationHandlerFactory delegate = new InvocationHandlerFactory.Default();
-    final InvocationHandlerFactory factory =
-        (target, dispatch) -> delegate.create(target, dispatch);
-    CompletableFeign.builder().invocationHandlerFactory(factory);
+    final ExecutorService exec = Executors.newSingleThreadExecutor();
+    server.enqueue(new MockResponse().setBody("response data"));
+    final String url = "http://localhost:" + server.getPort();
+    final TestInterface api = CompletableFeign.builder()
+        .invocationHandlerFactory((target, dispatch) ->
+            new CompletableInvocationHandler(target, dispatch,
+                (dispatchM, method, args, executor) -> CompletableFuture.supplyAsync(() -> {
+                  try {
+                    return dispatchM.get(method).invoke(args);
+                  } catch (final RuntimeException re) {
+                    throw re;
+                  } catch (final Throwable throwable) {
+                    throw new CompletionException(throwable);
+                  }
+                }, executor), ForkJoinPool.commonPool()))
+        .target(TestInterface.class, url);
+    final CompletableFuture<Response> response = api.get();
+    assertEquals("response data", Util.toString(response.join().body().asReader()));
+    exec.shutdown();
   }
 
   interface TestInterface {

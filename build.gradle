@@ -26,6 +26,15 @@ project.version = scmVersion.version
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 
+// api {
+//     moduleName = 'completable_feign'
+//     exports 'engineering.clientside.feign.completable'
+// }
+//
+// platforms {
+//   targetPlatforms 'java8', 'java9'
+// }
+
 repositories {
   maven { url "http://oss.sonatype.org/content/repositories/snapshots" }
   jcenter()
