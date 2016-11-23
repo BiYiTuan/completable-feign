@@ -29,16 +29,7 @@ public final class CompletableFeign {
 
     private Contract contract = new Contract.Default();
     private Runnable beforeHook = () -> { };
-    private FutureMethodCallFactory futureFactory =
-        (dispatch, method, args, executor) -> CompletableFuture.supplyAsync(() -> {
-          try {
-            return dispatch.get(method).invoke(args);
-          } catch (final RuntimeException re) {
-            throw re;
-          } catch (final Throwable throwable) {
-            throw new CompletionException(throwable);
-          }
-        }, executor);
+    private FutureMethodCallFactory futureFactory = null;
     private Executor executor = ForkJoinPool.commonPool();
     private InvocationHandlerFactory invocationHandlerFactory = null;
 
@@ -138,6 +129,19 @@ public final class CompletableFeign {
 
     @Override
     public Feign build() {
+      if (futureFactory == null) {
+        futureFactory = (dispatch, method, args, executor) -> CompletableFuture.supplyAsync(() -> {
+          try {
+            final InvocationHandlerFactory.MethodHandler methodHandler = dispatch.get(method);
+            beforeHook.run();
+            return methodHandler.invoke(args);
+          } catch (final RuntimeException re) {
+            throw re;
+          } catch (final Throwable throwable) {
+            throw new CompletionException(throwable);
+          }
+        }, executor);
+      }
       super.invocationHandlerFactory(invocationHandlerFactory == null ? (target, dispatch) ->
           new CompletableInvocationHandler(target, dispatch, beforeHook, futureFactory, executor)
           : invocationHandlerFactory);

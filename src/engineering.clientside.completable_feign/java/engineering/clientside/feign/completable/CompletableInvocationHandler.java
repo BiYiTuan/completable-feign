@@ -32,7 +32,6 @@ final class CompletableInvocationHandler implements InvocationHandler {
   public Object invoke(final Object proxy, final Method method, final Object[] args)
       throws Throwable {
     if (Future.class.isAssignableFrom(method.getReturnType())) {
-      beforeHook.run();
       return futureFactory.create(dispatch, method, args, executor);
     }
     switch (method.getName()) {
