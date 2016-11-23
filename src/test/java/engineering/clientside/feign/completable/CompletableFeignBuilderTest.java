@@ -112,7 +112,6 @@ public class CompletableFeignBuilderTest {
 
   @Test
   public void testProvideInvocationHandlerFactory() throws Exception {
-    final ExecutorService exec = Executors.newSingleThreadExecutor();
     server.enqueue(new MockResponse().setBody("response data"));
     final String url = "http://localhost:" + server.getPort();
     final TestInterface api = CompletableFeign.builder()
@@ -130,7 +129,6 @@ public class CompletableFeignBuilderTest {
         .target(TestInterface.class, url);
     final CompletableFuture<Response> response = api.get();
     assertEquals("response data", Util.toString(response.join().body().asReader()));
-    exec.shutdown();
   }
 
   interface TestInterface {
