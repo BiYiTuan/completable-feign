@@ -29,6 +29,7 @@ import okhttp3.mockwebserver.MockWebServer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class CompletableFeignBuilderTest {
@@ -93,6 +94,13 @@ public class CompletableFeignBuilderTest {
     final Response response = api.codecPost("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
+    assertTrue(hooked.get());
+
+    hooked.set(false);
+    assertFalse(hooked.get());
+    server.enqueue(new MockResponse().setBody("response data"));
+    final CompletableFuture<Response> responseFuture = api.get();
+    assertEquals("response data", Util.toString(responseFuture.join().body().asReader()));
     assertTrue(hooked.get());
   }
 
