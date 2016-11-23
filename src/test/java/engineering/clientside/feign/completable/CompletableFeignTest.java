@@ -16,6 +16,7 @@ import feign.FeignException;
 import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
+import feign.RetryableException;
 import feign.Target;
 import feign.gson.GsonDecoder;
 import okhttp3.mockwebserver.MockResponse;
@@ -117,13 +118,27 @@ public class CompletableFeignTest {
     assertEquals(code, ((FeignException) cause).status());
   }
 
+  @Test(expected = Throwable.class)
+  public void testDefaultThrowable() throws Throwable {
+    TestInterface.create(server).throwThrowable();
+  }
+
   @Test
   public void testThrowable() throws Throwable {
-    final CompletableFuture<Void> string = TestInterface.create(server).throwThrowable();
-    final Throwable throwable = string.handle((resp, ex) -> ex).join();
+    final TestInterface api = CompletableFeign.builder()
+        .target(TestInterface.class, "http://localhost:1111");
+    final CompletableFuture<String> future = api.command();
+    final Throwable throwable = future.handle((resp, ex) -> ex).join();
     assertEquals(CompletionException.class, throwable.getClass());
     final Throwable cause = throwable.getCause();
-    assertEquals(Throwable.class, cause.getClass());
+    assertEquals(RetryableException.class, cause.getClass());
+  }
+
+  @Test
+  public void testDefaultMethod() {
+    server.enqueue(new MockResponse().setBody("\"default\""));
+    final CompletableFuture<String> future = TestInterface.create(server).defaultCommand();
+    assertEquals("default", future.join());
   }
 
   @Test
@@ -215,6 +230,10 @@ public class CompletableFeignTest {
 
     default CompletableFuture<Void> throwThrowable() throws Throwable {
       throw new Throwable();
+    }
+
+    default CompletableFuture<String> defaultCommand() {
+      return command();
     }
   }
 }

@@ -28,6 +28,9 @@ final class CompletableInvocationHandler implements InvocationHandler {
   @Override
   public Object invoke(final Object proxy, final Method method, final Object[] args)
       throws Throwable {
+    if (method.isDefault()) {
+      return dispatch.get(method).invoke(args);
+    }
     if (Future.class.isAssignableFrom(method.getReturnType())) {
       return futureFactory.create(dispatch, method, args, executor);
     }
