@@ -14,16 +14,13 @@ final class CompletableInvocationHandler implements InvocationHandler {
 
   private final Target<?> target;
   private final Map<Method, MethodHandler> dispatch;
-  private final Runnable beforeHook;
   private final FutureMethodCallFactory futureFactory;
   private final Executor executor;
 
   CompletableInvocationHandler(final Target<?> target, final Map<Method, MethodHandler> dispatch,
-      final Runnable beforeHook, final FutureMethodCallFactory futureFactory,
-      final Executor executor) {
+      final FutureMethodCallFactory futureFactory, final Executor executor) {
     this.target = target;
     this.dispatch = dispatch;
-    this.beforeHook = beforeHook;
     this.futureFactory = futureFactory;
     this.executor = executor;
   }
@@ -54,9 +51,7 @@ final class CompletableInvocationHandler implements InvocationHandler {
       case "toString":
         return toString();
       default:
-        final MethodHandler methodHandler = dispatch.get(method);
-        beforeHook.run();
-        return methodHandler.invoke(args);
+        return dispatch.get(method).invoke(args);
     }
   }
 

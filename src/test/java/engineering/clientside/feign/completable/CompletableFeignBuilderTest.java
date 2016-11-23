@@ -10,7 +10,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import feign.Client;
 import feign.Contract;
@@ -29,8 +28,6 @@ import okhttp3.mockwebserver.MockWebServer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class CompletableFeignBuilderTest {
 
@@ -48,7 +45,7 @@ public class CompletableFeignBuilderTest {
   @Test
   public void testDefaults() throws Exception {
     final TestInterface api = CompletableFeign.builder().target(TestInterface.class, url);
-    final Response response = api.codecPost("request data");
+    final Response response = api.post("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
   }
@@ -68,7 +65,7 @@ public class CompletableFeignBuilderTest {
         .requestInterceptor(new BasicAuthRequestInterceptor("user", "pass"))
         .requestInterceptors(Collections.emptyList())
         .target(TestInterface.class, url);
-    final Response response = api.codecPost("request data");
+    final Response response = api.post("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
   }
@@ -77,31 +74,12 @@ public class CompletableFeignBuilderTest {
   public void testProvideContract() throws Exception {
     final TestInterface api = CompletableFeign.builder().contract(new Contract.Default())
         .target(TestInterface.class, url);
-    final Response response = api.codecPost("request data");
+    final Response response = api.post("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
     server.enqueue(new MockResponse().setBody("response data"));
     final CompletableFuture<Response> responseFuture = api.get();
     assertEquals("response data", Util.toString(responseFuture.join().body().asReader()));
-  }
-
-  @Test
-  public void testProvideBeforeHook() throws Exception {
-    final AtomicBoolean hooked = new AtomicBoolean();
-    final TestInterface api = CompletableFeign.builder()
-        .beforeHook(() -> hooked.set(true))
-        .target(TestInterface.class, url);
-    final Response response = api.codecPost("request data");
-    assertEquals("response data", Util.toString(response.body().asReader()));
-    assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
-    assertTrue(hooked.get());
-
-    hooked.set(false);
-    assertFalse(hooked.get());
-    server.enqueue(new MockResponse().setBody("response data"));
-    final CompletableFuture<Response> responseFuture = api.get();
-    assertEquals("response data", Util.toString(responseFuture.join().body().asReader()));
-    assertTrue(hooked.get());
   }
 
   @Test
@@ -126,7 +104,7 @@ public class CompletableFeignBuilderTest {
             throw new CompletionException(throwable);
           }
         }, executor)).target(TestInterface.class, url);
-    final Response response = api.codecPost("request data");
+    final Response response = api.post("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
   }
@@ -135,7 +113,7 @@ public class CompletableFeignBuilderTest {
   public void testProvideInvocationHandlerFactory() throws Exception {
     final TestInterface api = CompletableFeign.builder()
         .invocationHandlerFactory((target, dispatch) ->
-            new CompletableInvocationHandler(target, dispatch, () -> { },
+            new CompletableInvocationHandler(target, dispatch,
                 (dispatchM, method, args, executor) -> CompletableFuture.supplyAsync(() -> {
                   try {
                     return dispatchM.get(method).invoke(args);
@@ -156,6 +134,6 @@ public class CompletableFeignBuilderTest {
     CompletableFuture<Response> get();
 
     @RequestLine("POST /")
-    Response codecPost(String data);
+    Response post(String data);
   }
 }

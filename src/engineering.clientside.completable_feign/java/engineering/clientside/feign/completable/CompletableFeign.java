@@ -28,19 +28,22 @@ public final class CompletableFeign {
   public static final class Builder extends Feign.Builder {
 
     private Contract contract = new Contract.Default();
-    private Runnable beforeHook = () -> { };
-    private FutureMethodCallFactory futureFactory = null;
+    private FutureMethodCallFactory futureFactory = (dispatch, method, args, executor) ->
+        CompletableFuture.supplyAsync(() -> {
+          try {
+            return dispatch.get(method).invoke(args);
+          } catch (final RuntimeException re) {
+            throw re;
+          } catch (final Throwable throwable) {
+            throw new CompletionException(throwable);
+          }
+        }, executor);
     private Executor executor = ForkJoinPool.commonPool();
     private InvocationHandlerFactory invocationHandlerFactory = null;
 
     @Override
     public Builder contract(final Contract contract) {
       this.contract = contract;
-      return this;
-    }
-
-    public Builder beforeHook(final Runnable beforeHook) {
-      this.beforeHook = beforeHook;
       return this;
     }
 
@@ -129,21 +132,8 @@ public final class CompletableFeign {
 
     @Override
     public Feign build() {
-      if (futureFactory == null) {
-        futureFactory = (dispatch, method, args, executor) -> CompletableFuture.supplyAsync(() -> {
-          try {
-            final InvocationHandlerFactory.MethodHandler methodHandler = dispatch.get(method);
-            beforeHook.run();
-            return methodHandler.invoke(args);
-          } catch (final RuntimeException re) {
-            throw re;
-          } catch (final Throwable throwable) {
-            throw new CompletionException(throwable);
-          }
-        }, executor);
-      }
       super.invocationHandlerFactory(invocationHandlerFactory == null ? (target, dispatch) ->
-          new CompletableInvocationHandler(target, dispatch, beforeHook, futureFactory, executor)
+          new CompletableInvocationHandler(target, dispatch, futureFactory, executor)
           : invocationHandlerFactory);
       super.contract(new CompletableContract(contract));
       return super.build();

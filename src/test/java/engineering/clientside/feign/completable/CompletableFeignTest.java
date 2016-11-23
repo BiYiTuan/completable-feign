@@ -164,9 +164,9 @@ public class CompletableFeignTest {
     assertEquals(i1String, t1.toString());
 
     final CompletableInvocationHandler direct =
-        new CompletableInvocationHandler(t1, null, () -> { }, null, null);
+        new CompletableInvocationHandler(t1, null, null, null);
     assertEquals(direct, direct);
-    assertEquals(direct, new CompletableInvocationHandler(t1, null, () -> { }, null, null));
+    assertEquals(direct, new CompletableInvocationHandler(t1, null, null, null));
     assertNotEquals(direct, t1);
     assertNotEquals(direct, t2);
     assertNotEquals(direct, t3);
