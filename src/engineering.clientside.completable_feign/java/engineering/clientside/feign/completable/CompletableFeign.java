@@ -1,10 +1,10 @@
 package engineering.clientside.feign.completable;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
+import engineering.clientside.feign.CoderProvider;
 import feign.Client;
 import feign.Contract;
 import feign.Feign;
@@ -34,8 +34,8 @@ public final class CompletableFeign {
             return dispatch.get(method).invoke(args);
           } catch (final RuntimeException re) {
             throw re;
-          } catch (final Throwable throwable) {
-            throw new CompletionException(throwable);
+          } catch (final Throwable cause) {
+            throw new IllegalStateException("Impossible to reach here!", cause);
           }
         }, executor);
     private Executor executor = ForkJoinPool.commonPool();
@@ -97,6 +97,27 @@ public final class CompletableFeign {
     @Override
     public Builder decoder(final Decoder decoder) {
       super.decoder(decoder);
+      return this;
+    }
+
+    public <C extends Encoder & Decoder> Builder coder(final C coder) {
+      super.encoder(coder);
+      super.decoder(coder);
+      return this;
+    }
+
+    public Builder encoder(final Class<? extends Encoder> encoderClass) {
+      super.encoder(CoderProvider.getEncoder(encoderClass));
+      return this;
+    }
+
+    public Builder decoder(final Class<? extends Decoder> decoderClass) {
+      super.decoder(CoderProvider.getDecoder(decoderClass));
+      return this;
+    }
+
+    public <C extends Encoder & Decoder> Builder coder(final Class<C> coderClass) {
+      CoderProvider.configureCoder(this, coderClass);
       return this;
     }
 

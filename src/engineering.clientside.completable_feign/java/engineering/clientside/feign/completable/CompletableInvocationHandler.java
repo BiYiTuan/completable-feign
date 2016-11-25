@@ -36,7 +36,7 @@ final class CompletableInvocationHandler implements InvocationHandler {
     }
     switch (method.getName()) {
       case "equals":
-        if (args.length == 0 || args[0] == null) {
+        if (args[0] == null) {
           return false;
         }
         try {

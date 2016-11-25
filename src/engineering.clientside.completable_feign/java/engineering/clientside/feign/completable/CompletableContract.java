@@ -24,12 +24,9 @@ final class CompletableContract implements Contract {
       final Type type = metadata.returnType();
       if (type instanceof ParameterizedType) {
         final ParameterizedType parameterizedType = ParameterizedType.class.cast(type);
-        final Type rawType = parameterizedType.getRawType();
-        if (rawType instanceof Class) {
-          final Class<?> futureClass = (Class<?>) rawType;
-          if (Future.class.isAssignableFrom(futureClass)) {
-            metadata.returnType(Util.resolveLastTypeParameter(type, futureClass));
-          }
+        final Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+        if (Future.class.isAssignableFrom(rawType)) {
+          metadata.returnType(Util.resolveLastTypeParameter(type, rawType));
         }
       }
     }

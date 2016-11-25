@@ -11,6 +11,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
+import engineering.clientside.feign.Coder;
+import engineering.clientside.feign.CoderProviderTest;
+import engineering.clientside.feign.TestCoder;
 import feign.Client;
 import feign.Contract;
 import feign.Logger;
@@ -85,11 +88,46 @@ public class CompletableFeignBuilderTest {
   @Test
   public void testProvideExecutor() throws Exception {
     final ExecutorService exec = Executors.newSingleThreadExecutor();
-    final TestInterface api = CompletableFeign.builder().executor(exec).target(TestInterface
-        .class, url);
+    final TestInterface api = CompletableFeign.builder()
+        .executor(exec).target(TestInterface.class, url);
     final CompletableFuture<Response> response = api.get();
     assertEquals("response data", Util.toString(response.join().body().asReader()));
     exec.shutdown();
+  }
+
+  @Test
+  public void testProvideCoder() throws Exception {
+    final TestInterface api = CompletableFeign.builder()
+        .coder(new TestCoder()).target(TestInterface.class, url);
+    final CompletableFuture<Response> response = api.get();
+    assertEquals("response data", Util.toString(response.join().body().asReader()));
+  }
+
+  @Test
+  public void testLoadCoder() throws Exception {
+    final TestInterface api = CompletableFeign.builder()
+        .coder(Coder.class).target(TestInterface.class, url);
+    final CompletableFuture<Response> response = api.get();
+    assertEquals("response data", Util.toString(response.join().body().asReader()));
+  }
+
+  @Test
+  public void testLoadNotProvidedCoder() throws Exception {
+    final TestInterface api = CompletableFeign.builder()
+        .coder(CoderProviderTest.NotProvidedCoder.class)
+        .target(TestInterface.class, url);
+    final CompletableFuture<Response> response = api.get();
+    assertEquals("response data", Util.toString(response.join().body().asReader()));
+  }
+
+  @Test
+  public void testLoadDeEncoder() throws Exception {
+    final TestInterface api = CompletableFeign.builder()
+        .decoder(Decoder.class)
+        .encoder(Encoder.class)
+        .target(TestInterface.class, url);
+    final CompletableFuture<Response> response = api.get();
+    assertEquals("response data", Util.toString(response.join().body().asReader()));
   }
 
   @Test
@@ -134,6 +172,6 @@ public class CompletableFeignBuilderTest {
     CompletableFuture<Response> get();
 
     @RequestLine("POST /")
-    Response post(String data);
+    Response post(final String data);
   }
 }
