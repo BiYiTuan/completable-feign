@@ -13,6 +13,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import engineering.clientside.feign.Coder;
 import engineering.clientside.feign.CoderProviderTest;
+import engineering.clientside.feign.FeignProperties;
 import engineering.clientside.feign.TestCoder;
 import feign.Client;
 import feign.Contract;
@@ -48,6 +49,15 @@ public class CompletableFeignBuilderTest {
   @Test
   public void testDefaults() throws Exception {
     final TestInterface api = CompletableFeign.builder().target(TestInterface.class, url);
+    final Response response = api.post("request data");
+    assertEquals("response data", Util.toString(response.body().asReader()));
+    assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));
+  }
+
+  @Test
+  public void testSystemProperties() throws Exception {
+    FeignProperties.TARGET_URL.setProperty(TestInterface.class, url);
+    final TestInterface api = CompletableFeign.builder().target(TestInterface.class);
     final Response response = api.post("request data");
     assertEquals("response data", Util.toString(response.body().asReader()));
     assertEquals("request data", server.takeRequest().getBody().readString(UTF_8));

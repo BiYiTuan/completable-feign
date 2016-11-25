@@ -34,8 +34,8 @@ final class CompletableInvocationHandler implements InvocationHandler {
     if (Future.class.isAssignableFrom(method.getReturnType())) {
       return futureFactory.create(dispatch, method, args, executor);
     }
-    switch (method.getName()) {
-      case "equals":
+    if (method.getDeclaringClass() == Object.class) {
+      if (method.getName().equals("equals")) {
         if (args[0] == null) {
           return false;
         }
@@ -49,13 +49,16 @@ final class CompletableInvocationHandler implements InvocationHandler {
           //
         }
         return false;
-      case "hashCode":
+      }
+      if (method.getName().equals("hashCode")) {
         return hashCode();
-      case "toString":
+      }
+      if (method.getName().equals("toString")) {
         return toString();
-      default:
-        return dispatch.get(method).invoke(args);
+      }
+      // unreachable
     }
+    return dispatch.get(method).invoke(args);
   }
 
   @Override

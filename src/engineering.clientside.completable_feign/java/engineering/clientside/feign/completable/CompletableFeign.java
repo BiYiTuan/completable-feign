@@ -5,6 +5,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
 import engineering.clientside.feign.CoderProvider;
+import engineering.clientside.feign.FeignProperties;
 import feign.Client;
 import feign.Contract;
 import feign.Feign;
@@ -13,6 +14,7 @@ import feign.Logger;
 import feign.Request;
 import feign.RequestInterceptor;
 import feign.Retryer;
+import feign.Target;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
@@ -158,6 +160,11 @@ public final class CompletableFeign {
           : invocationHandlerFactory);
       super.contract(new CompletableContract(contract));
       return super.build();
+    }
+
+    public <T> T target(final Class<T> apiType) {
+      return target(new Target.HardCodedTarget<>(
+          apiType, FeignProperties.TARGET_URL.getProperty(apiType)));
     }
   }
 }

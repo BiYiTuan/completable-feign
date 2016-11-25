@@ -85,15 +85,6 @@ public class CompletableFeignTest {
     assertEquals(Arrays.asList("foo", "bar"), list);
   }
 
-  @Test
-  public void throwThrowable() {
-    //    CompletableFeign.builder()
-    //        .requestInterceptor(template -> {
-    //          throw new Throwable();
-    //        })
-    //        .target(TestInterface.class, "http://localhost:" + server.getPort());
-  }
-
   interface GitHub {
 
     @RequestLine("GET /repos/{owner}/{repo}/contributors")
