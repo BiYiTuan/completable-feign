@@ -50,3 +50,11 @@ YourApi api = CompletableFeign.builder()
   .encoder(Encoder.class)
   .target(YourApi.class, "https://example.com");
 ```
+
+## Configure Target URLs via System Properties
+
+```java
+// Sets the system property 'com.company.yourapi.target_url' to https://example.com
+FeignProperties.TARGET_URL.setProperty(com.company.YourApi.class, "https://example.com");
+YourApi api = CompletableFeign.builder().target(YourApi.class);
+```

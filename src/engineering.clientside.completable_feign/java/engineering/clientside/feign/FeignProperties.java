@@ -13,7 +13,7 @@ public enum FeignProperties {
   }
 
   private static String createPropertyKey(final Class<?> apiType, final String propertyName) {
-    return apiType.getPackage().getName() + '.' + propertyName;
+    return apiType.getName().toLowerCase(Locale.ENGLISH) + '.' + propertyName;
   }
 
   public String getProperty(final Class<?> apiType) {
