@@ -38,11 +38,11 @@ By default, a `CompletableFuture` is created for any API method that returns a `
 
 When building a module to handle the decoding or encoding for a specific API it may be convenient to provide that implementation without forcing the user to manually reference your implementation in source code.  
 
-The `CompletableFeign.Builder` has convenience methods to use the Java [`ServiceLoader`](https://docs.oracle.com/javase/tutorial/ext/basics/spi.html#the-serviceloader-class) through the [`CoderProvider`](src/engineering.clientside.completable_feign/java/engineering/clientside/feign/CoderProvider.java#L12) class to allow for loading `feign.codec.Encoder` and `feign.codec.Decoder` implementations configured in META-INF/services.
+The `CompletableFeign.Builder` has convenience methods to use the Java [`ServiceLoader`](https://docs.oracle.com/javase/tutorial/ext/basics/spi.html#the-serviceloader-class) to allow for loading `feign.codec.Encoder` and `feign.codec.Decoder` implementations configured in META-INF/services.
 
 #### Example Encoder Configuration
 
-In your project that provides an Encoder implementation, add a file named `/META-INF/services/feign.codec.Encoder` to your resources directory.  Then, add a single line declaring your implementation class, e.g., `feign.codec.Encoder$Default`.
+In your project that provides an Encoder implementation, add a file named `resources/META-INF/services/feign.codec.Encoder` to your resources directory.  Then, add a single line declaring your implementation class, e.g., `feign.codec.Encoder$Default`.
 
 Now, as long as your module is on the classpath as a dependency, you can load your implementation like so:
 ```java
