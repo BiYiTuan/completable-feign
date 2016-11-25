@@ -56,6 +56,8 @@ public class CompletableFeignBuilderTest {
 
   @Test
   public void testSystemProperties() throws Exception {
+    assertEquals("absent", FeignProperties.TARGET_URL
+        .getProperty(TestInterface.class, "absent"));
     FeignProperties.TARGET_URL.setProperty(TestInterface.class, url);
     final TestInterface api = CompletableFeign.builder().target(TestInterface.class);
     final Response response = api.post("request data");

@@ -12,12 +12,16 @@ public enum FeignProperties {
     this.name = name().toLowerCase(Locale.ENGLISH);
   }
 
-  private static String createPropertyKey(final Class<?> apiType, final String propertyName) {
+  public static String createPropertyKey(final Class<?> apiType, final String propertyName) {
     return apiType.getName().toLowerCase(Locale.ENGLISH) + '.' + propertyName;
   }
 
   public String getProperty(final Class<?> apiType) {
     return System.getProperty(createPropertyKey(apiType, name));
+  }
+
+  public String getProperty(final Class<?> apiType, final String def) {
+    return System.getProperty(createPropertyKey(apiType, name), def);
   }
 
   public String setProperty(final Class<?> apiType, final String value) {
