@@ -2,13 +2,17 @@
 
 >Provides asynchronous Feign method execution using core Java constructs.
 
-## Usage 
+## Usage
 
 ```java
 interface YourApi {
-  
+
   @RequestLine("GET /yourtype/{id}")
   CompletableFuture<YourType> getYourTypeAsync(@Param("id") String id);
+
+  default CompletableFuture<YourType> getYourTypeAsync() {
+    return getYourTypeAsync("defaultId");
+  }
 
   @RequestLine("GET /yourtype/{id}")
   YourType getYourType(@Param("id") String id);
@@ -28,7 +32,7 @@ Note: Methods that do *not* return a [`CompletableFuture`]() are *not* wrapped a
 
 ## Customize Future Creation
 
-By default, a `CompletableFuture` is created for any API method that returns a `Future`.  This behavior can customized by providing a [`FutureMethodCallFactory`](src/engineering.clientside.completable_feign/java/engineering/clientside/feign/completable/FutureMethodCallFactory.java#L12) via the [`CompletableFeign.Builder`](src/engineering.clientside.completable_feign/java/engineering/clientside/feign/completable/CompletableFeign.java#L31).
+By default, a `CompletableFuture` is created for any API method that returns a `Future`.  This behavior can be customized by providing a [`FutureMethodCallFactory`](src/engineering.clientside.completable_feign/java/engineering/clientside/feign/completable/FutureMethodCallFactory.java#L12) via the [`CompletableFeign.Builder`](src/engineering.clientside.completable_feign/java/engineering/clientside/feign/completable/CompletableFeign.java#L31).
 
 ## Provide Encoders & Decoders via ServiceLoader
 
